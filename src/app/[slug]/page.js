@@ -6,8 +6,8 @@ export function generateStaticParams() {
   return FORTUNE_PAGES.map((page) => ({ slug: page.slug }));
 }
 
-export default function FortunePage({ params }) {
-  const { slug } = params;
+export default async function FortunePage({ params }) {
+  const { slug } = await params;
   const fortune = FORTUNE_BY_SLUG[slug];
 
   if (!fortune) {

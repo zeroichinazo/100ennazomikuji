@@ -1,26 +1,108 @@
-@import "tailwindcss";
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #fef8f8;
+  --foreground: #3f1f1f;
+  --frame-red: #d93d42;
+  --frame-red-dark: #b6202c;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "Hiragino Kaku Gothic ProN", "Yu Gothic",
+    Arial, sans-serif;
+}
+
+.fortune-page,
+.home-page {
+  min-height: 100vh;
+  padding: 24px 12px 40px;
+  background:
+    linear-gradient(90deg, var(--frame-red) 0 10px, transparent 10px calc(100% - 10px), var(--frame-red) calc(100% - 10px)),
+    linear-gradient(0deg, var(--frame-red) 0 10px, transparent 10px calc(100% - 10px), var(--frame-red) calc(100% - 10px)),
+    var(--background);
+}
+
+.fortune-card,
+.home-card {
+  width: min(100%, 860px);
+  margin: 0 auto;
+  background: #fff;
+  border: 4px solid var(--frame-red-dark);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.fortune-main-image,
+.fortune-image,
+.button-image {
+  width: 100%;
+  height: auto;
+}
+
+.answer-form {
+  margin-top: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.answer-label {
+  font-weight: 700;
+}
+
+.answer-input {
+  width: 100%;
+  border: 2px solid #e2bbbb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.judge-button {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  width: 180px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--frame-red-dark);
+  cursor: pointer;
+}
+
+.message-text {
+  margin-top: 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.fortune-image,
+.allclear-buttons,
+.image-button-link {
+  display: block;
+  margin-top: 16px;
+}
+
+.allclear-buttons {
+  display: grid;
+  gap: 12px;
+}
+
+.home-card h1 {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.home-card p {
+  margin-top: 8px;
+}
+
+.home-card ul {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.home-card a {
+  color: #7f1d1d;
+  text-decoration: underline;
 }

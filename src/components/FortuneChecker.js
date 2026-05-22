@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { getAllClearShareText, getClearShareText } from "@/lib/fortunePages";
+import { getXShareUrl, shareToX } from "@/lib/shareToX";
 
 const STAGE = {
   INITIAL: "initial",
@@ -72,9 +73,6 @@ const subscribeProgress = (callback) => {
 };
 
 const normalizeAnswer = (value) => value.trim().normalize("NFKC").toLowerCase();
-
-const getShareUrl = (text) =>
-  `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
 
 function FeedbackMark({ type }) {
   if (type === FEEDBACK.CORRECT) {
@@ -330,11 +328,14 @@ export default function FortuneChecker({ fortune }) {
                 </p>
               )}
               <a
-                href={getShareUrl(shareText)}
-                target="_blank"
+                href={getXShareUrl(shareText)}
                 rel="noopener noreferrer"
                 aria-label="Xでシェア"
                 className="image-button-link"
+                onClick={(event) => {
+                  event.preventDefault();
+                  shareToX(shareText);
+                }}
               >
                 <Image
                   src="/img/button_1.png"

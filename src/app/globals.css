@@ -3,26 +3,98 @@
   --foreground: #3f1f1f;
   --frame-red: #d93d42;
   --frame-red-dark: #b6202c;
+
+  /* fortune-page（外枠）— 太さ・角丸はここを変更 */
+  --fortune-page-frame-width: 10px;
+  --fortune-page-frame-radius: 6px;
+
+  /* 運勢画像の表示幅（100%より大きくすると拡大） */
+  --fortune-image-width: 100%;
+
+  /* 画像ボタン（button_1〜3）の表示幅 */
+  --button-image-width: 82%;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), "Hiragino Kaku Gothic ProN", "Yu Gothic",
-    Arial, sans-serif;
+  font-family:
+    var(--font-geist-sans), "Hiragino Kaku Gothic ProN", "Yu Gothic", Arial,
+    sans-serif;
 }
 
-.fortune-page,
+.not-found-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.not-found-page h1 {
+  margin: 0;
+  font-size: 48px;
+  color: var(--frame-red-dark);
+}
+
+.not-found-page p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.fortune-page {
+  min-height: 100vh;
+  padding: 20px 12px 32px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  border: var(--fortune-page-frame-width) solid var(--frame-red);
+  border-radius: var(--fortune-page-frame-radius);
+  background: var(--background);
+}
+
+.fortune-page__content {
+  position: relative;
+  width: min(100%, 440px);
+  max-width: calc(100vw - 24px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .home-page {
   min-height: 100vh;
   padding: 24px 12px 40px;
   background:
-    linear-gradient(90deg, var(--frame-red) 0 10px, transparent 10px calc(100% - 10px), var(--frame-red) calc(100% - 10px)),
-    linear-gradient(0deg, var(--frame-red) 0 10px, transparent 10px calc(100% - 10px), var(--frame-red) calc(100% - 10px)),
+    linear-gradient(
+      90deg,
+      var(--frame-red) 0 10px,
+      transparent 10px calc(100% - 10px),
+      var(--frame-red) calc(100% - 10px)
+    ),
+    linear-gradient(
+      0deg,
+      var(--frame-red) 0 10px,
+      transparent 10px calc(100% - 10px),
+      var(--frame-red) calc(100% - 10px)
+    ),
     var(--background);
 }
 
-.fortune-card,
 .home-card {
   width: min(100%, 860px);
   margin: 0 auto;
@@ -33,17 +105,106 @@ body {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
-.fortune-main-image,
-.fortune-image,
-.button-image {
+.fortune-logo {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  margin: 0 auto 8px;
+}
+
+.fortune-hint {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--foreground);
+}
+
+.fortune-image-wrap {
+  width: var(--fortune-image-width);
+  margin-top: 16px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.fortune-image-wrap .fortune-image {
+  display: block;
   width: 100%;
   height: auto;
 }
 
+.image-button-link {
+  display: block;
+  width: var(--button-image-width);
+  margin-top: 16px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.button-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.feedback-mark {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  min-height: 0;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.feedback-mark__circle {
+  display: block;
+  width: 140px;
+  height: 140px;
+  border: 16px solid #e53935;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.feedback-mark__cross {
+  position: relative;
+  display: block;
+  width: 140px;
+  height: 140px;
+}
+
+.feedback-mark__cross::before,
+.feedback-mark__cross::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 16px;
+  background: #1e88e5;
+  border-radius: 7px;
+  transform-origin: center;
+}
+
+.feedback-mark__cross::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.feedback-mark__cross::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .answer-form {
-  margin-top: 20px;
+  margin-top: 8px;
   display: grid;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .answer-label {
@@ -51,40 +212,51 @@ body {
 }
 
 .answer-input {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 2px solid #e2bbbb;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 16px;
+  box-sizing: border-box;
 }
 
 .judge-button {
   border: none;
   border-radius: 999px;
   padding: 10px 16px;
-  width: 180px;
+  width: min(100%, 180px);
+  max-width: 100%;
   font-weight: 700;
   color: #fff;
   background: var(--frame-red-dark);
   cursor: pointer;
+  box-sizing: border-box;
 }
 
-.message-text {
-  margin-top: 12px;
-  font-size: 20px;
-  font-weight: 700;
+.answer-form--disabled .answer-label {
+  color: #9ca3af;
 }
 
-.fortune-image,
-.allclear-buttons,
-.image-button-link {
-  display: block;
-  margin-top: 16px;
+.answer-form--disabled .answer-input {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.answer-form--disabled .judge-button {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
 
 .allclear-buttons {
   display: grid;
-  gap: 12px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .home-card h1 {

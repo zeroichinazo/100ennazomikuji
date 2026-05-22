@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
+import { getAllClearShareText, getClearShareText } from "@/lib/fortunePages";
 
 const STAGE = {
   INITIAL: "initial",
@@ -9,99 +10,308 @@ const STAGE = {
   ALL_CLEAR: "all-clear",
 };
 
+const FEEDBACK = {
+  CORRECT: "correct",
+  WRONG: "wrong",
+};
+
+const storageKey = (slug) => `100ennazomikuji:${slug}`;
+
+const NULL_SNAPSHOT = null;
+const snapshotCache = new Map();
+
+const getProgressSnapshot = (slug) => {
+  if (typeof window === "undefined") {
+    return NULL_SNAPSHOT;
+  }
+
+  let raw = "";
+  try {
+    raw = localStorage.getItem(storageKey(slug)) ?? "";
+  } catch {
+    return NULL_SNAPSHOT;
+  }
+
+  const cached = snapshotCache.get(slug);
+  if (cached && cached.raw === raw) {
+    return cached.data;
+  }
+
+  let data = NULL_SNAPSHOT;
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = NULL_SNAPSHOT;
+    }
+  }
+
+  snapshotCache.set(slug, { raw, data });
+  return data;
+};
+
+const saveProgress = (slug, data) => {
+  const raw = JSON.stringify(data);
+  localStorage.setItem(storageKey(slug), raw);
+  snapshotCache.set(slug, { raw, data });
+  window.dispatchEvent(new Event("fortune-progress"));
+};
+
+const subscribeProgress = (callback) => {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handler = () => callback();
+  window.addEventListener("storage", handler);
+  window.addEventListener("fortune-progress", handler);
+  return () => {
+    window.removeEventListener("storage", handler);
+    window.removeEventListener("fortune-progress", handler);
+  };
+};
+
 const normalizeAnswer = (value) => value.trim().toLowerCase();
 
 const getShareUrl = (text) =>
   `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
 
+function FeedbackMark({ type }) {
+  if (type === FEEDBACK.CORRECT) {
+    return (
+      <div className="feedback-mark" aria-label="正解">
+        <span className="feedback-mark__circle" />
+      </div>
+    );
+  }
+
+  if (type === FEEDBACK.WRONG) {
+    return (
+      <div className="feedback-mark" aria-label="不正解">
+        <span className="feedback-mark__cross" />
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function LinkButtons() {
+  return (
+    <>
+      <a
+        href="https://www.zeroichinazo.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="ゼロイチHPへ"
+        className="image-button-link"
+      >
+        <Image
+          src="/img/button_2.png"
+          alt="ゼロイチHPへ"
+          width={1000}
+          height={240}
+          className="button-image"
+        />
+      </a>
+      <a
+        href="https://x.com/0001_nazo"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="ゼロイチXへ"
+        className="image-button-link"
+      >
+        <Image
+          src="/img/button_3.png"
+          alt="ゼロイチXへ"
+          width={1000}
+          height={240}
+          className="button-image"
+        />
+      </a>
+    </>
+  );
+}
+
 export default function FortuneChecker({ fortune }) {
   const [answer, setAnswer] = useState("");
-  const [message, setMessage] = useState("");
-  const [stage, setStage] = useState(STAGE.INITIAL);
+  const [feedback, setFeedback] = useState(null);
+  const [unlockedByFeedback, setUnlockedByFeedback] = useState(false);
 
-  const clearShareText = `100円なぞみくじ「${fortune.label}」をクリア！ #100円なぞみくじ`;
-  const allClearShareText =
-    "100円なぞみくじを完全クリア！5問全部大吉にした！ #100円なぞみくじ";
+  const [mountStage] = useState(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    return getProgressSnapshot(fortune.slug)?.stage ?? null;
+  });
+  const wasClearAtMount = mountStage === STAGE.CLEAR;
+  const wasAllClearAtMount = mountStage === STAGE.ALL_CLEAR;
+
+  const persisted = useSyncExternalStore(
+    subscribeProgress,
+    () => getProgressSnapshot(fortune.slug),
+    () => NULL_SNAPSHOT,
+  );
+
+  const stage =
+    persisted?.stage === STAGE.CLEAR || persisted?.stage === STAGE.ALL_CLEAR
+      ? persisted.stage
+      : STAGE.INITIAL;
+  const blockedAnswers = persisted?.blockedAnswers ?? [];
+
+  const clearShareText = getClearShareText(fortune.label);
+  const allClearShareText = getAllClearShareText();
+
+  const firstStageAnswers = fortune.answers.map((item) =>
+    normalizeAnswer(item),
+  );
+
+  useEffect(() => {
+    if (!feedback) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setFeedback(null);
+      setUnlockedByFeedback(true);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
+
+  const persistProgress = (nextStage, nextBlocked) => {
+    saveProgress(fortune.slug, {
+      stage: nextStage,
+      blockedAnswers: nextBlocked,
+    });
+  };
 
   const onSubmit = (event) => {
     event.preventDefault();
 
+    if (stage === STAGE.ALL_CLEAR) {
+      return;
+    }
+
     const normalized = normalizeAnswer(answer);
+
+    if (!normalized) {
+      return;
+    }
+
+    if (blockedAnswers.includes(normalized)) {
+      setFeedback(FEEDBACK.WRONG);
+      setAnswer("");
+      return;
+    }
+
     const isDaikichi =
       normalized === normalizeAnswer("大吉") ||
       normalized === normalizeAnswer("だいきち");
-    const isCorrect = fortune.answers
-      .map((item) => normalizeAnswer(item))
-      .includes(normalized);
+    const isFirstStageCorrect = firstStageAnswers.includes(normalized);
 
-    if (stage === STAGE.INITIAL && isCorrect) {
-      setStage(STAGE.CLEAR);
-      setMessage("クリア！");
+    if (stage === STAGE.INITIAL && isFirstStageCorrect) {
+      const nextBlocked = [...blockedAnswers, normalized];
+      persistProgress(STAGE.CLEAR, nextBlocked);
+      setUnlockedByFeedback(false);
+      setFeedback(FEEDBACK.CORRECT);
+      setAnswer("");
+      return;
+    }
+
+    if (stage === STAGE.CLEAR && isFirstStageCorrect) {
+      setFeedback(FEEDBACK.WRONG);
       setAnswer("");
       return;
     }
 
     if (stage === STAGE.CLEAR && isDaikichi) {
-      setStage(STAGE.ALL_CLEAR);
-      setMessage("完全クリア！");
+      persistProgress(STAGE.ALL_CLEAR, blockedAnswers);
+      setUnlockedByFeedback(false);
+      setFeedback(FEEDBACK.CORRECT);
       setAnswer("");
       return;
     }
 
-    setMessage("不正解...");
+    setFeedback(FEEDBACK.WRONG);
+    setAnswer("");
   };
 
-  const mvImage =
-    stage === STAGE.ALL_CLEAR
-      ? "/img/allclear.png"
-      : stage === STAGE.CLEAR
-        ? "/img/clear.png"
-        : "/img/MV.png";
+  const hasClearedFirstStage =
+    stage === STAGE.CLEAR || stage === STAGE.ALL_CLEAR;
+  const showRewards =
+    hasClearedFirstStage &&
+    (wasClearAtMount ||
+      wasAllClearAtMount ||
+      unlockedByFeedback ||
+      (stage === STAGE.ALL_CLEAR && !!feedback));
+  const showDaikichiFortune =
+    stage === STAGE.ALL_CLEAR &&
+    !feedback &&
+    (wasAllClearAtMount || unlockedByFeedback);
+  const shareText = showDaikichiFortune
+    ? allClearShareText
+    : clearShareText;
 
   return (
     <div className="fortune-page">
-      <div className="fortune-card">
-        <Image
-          src={mvImage}
-          alt="なぞみくじメイン画像"
-          width={1200}
-          height={630}
-          className="fortune-main-image"
-          priority
+      <div className="fortune-page__content">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/img/logo.svg"
+          alt="100円なぞみくじ"
+          className="fortune-logo"
         />
 
-        {stage !== STAGE.ALL_CLEAR && (
-          <form className="answer-form" onSubmit={onSubmit}>
-            <label htmlFor="answer-input" className="answer-label">
-              答えを入力してください
-            </label>
-            <input
-              id="answer-input"
-              className="answer-input"
-              type="text"
-              value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
-              placeholder="例: 末吉 / すえきち"
-            />
-            <button className="judge-button" type="submit">
-              判定する
-            </button>
-          </form>
-        )}
+        <form
+          className={`answer-form${stage === STAGE.ALL_CLEAR ? " answer-form--disabled" : ""}`}
+          onSubmit={onSubmit}
+        >
+          <label htmlFor="answer-input" className="answer-label">
+            問題の答えを入力しよう！
+          </label>
+          <input
+            id="answer-input"
+            className="answer-input"
+            type="text"
+            value={answer}
+            onChange={(event) => setAnswer(event.target.value)}
+            disabled={stage === STAGE.ALL_CLEAR}
+          />
+          <button
+            className="judge-button"
+            type="submit"
+            disabled={stage === STAGE.ALL_CLEAR}
+          >
+            判定する
+          </button>
+        </form>
 
-        {message && <p className="message-text">{message}</p>}
-
-        {stage === STAGE.CLEAR && (
+        {showRewards && (
           <>
-            <Image
-              src={fortune.fortuneImage}
-              alt={`${fortune.label}のクリア画像`}
-              width={1000}
-              height={560}
-              className="fortune-image"
-            />
+            <div className="fortune-image-wrap">
+              <Image
+                src={
+                  showDaikichiFortune
+                    ? "/img/fortune_daikichi.png"
+                    : fortune.fortuneImage
+                }
+                alt={
+                  showDaikichiFortune ? "大吉" : `${fortune.label}のクリア画像`
+                }
+                width={1000}
+                height={560}
+                className="fortune-image"
+                sizes="(max-width: 440px) 100vw, 440px"
+              />
+            </div>
+            {!showDaikichiFortune && (
+              <p className="fortune-hint">
+                メモ：あなたの運勢がもっと良くなる方法があるかも・・・？
+              </p>
+            )}
             <a
-              href={getShareUrl(clearShareText)}
+              href={getShareUrl(shareText)}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Xでシェア"
@@ -115,58 +325,11 @@ export default function FortuneChecker({ fortune }) {
                 className="button-image"
               />
             </a>
+            <LinkButtons />
           </>
         )}
 
-        {stage === STAGE.ALL_CLEAR && (
-          <div className="allclear-buttons">
-            <a
-              href={getShareUrl(allClearShareText)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Xでシェア"
-              className="image-button-link"
-            >
-              <Image
-                src="/img/button_1.png"
-                alt="Xでシェア"
-                width={1000}
-                height={240}
-                className="button-image"
-              />
-            </a>
-            <a
-              href="https://www.zeroichinazo.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="ゼロイチHPへ"
-              className="image-button-link"
-            >
-              <Image
-                src="/img/button_2.png"
-                alt="ゼロイチHPへ"
-                width={1000}
-                height={240}
-                className="button-image"
-              />
-            </a>
-            <a
-              href="https://x.com/0001_nazo"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="ゼロイチXへ"
-              className="image-button-link"
-            >
-              <Image
-                src="/img/button_3.png"
-                alt="ゼロイチXへ"
-                width={1000}
-                height={240}
-                className="button-image"
-              />
-            </a>
-          </div>
-        )}
+        <FeedbackMark type={feedback} />
       </div>
     </div>
   );

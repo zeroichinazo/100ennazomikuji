@@ -71,7 +71,7 @@ const subscribeProgress = (callback) => {
   };
 };
 
-const normalizeAnswer = (value) => value.trim().toLowerCase();
+const normalizeAnswer = (value) => value.trim().normalize("NFKC").toLowerCase();
 
 const getShareUrl = (text) =>
   `https://x.com/intent/post?text=${encodeURIComponent(text)}`;
@@ -79,16 +79,22 @@ const getShareUrl = (text) =>
 function FeedbackMark({ type }) {
   if (type === FEEDBACK.CORRECT) {
     return (
-      <div className="feedback-mark" aria-label="正解">
-        <span className="feedback-mark__circle" />
+      <div className="feedback-mark__group" aria-label="正解">
+        <span className="feedback-mark__circle" aria-hidden="true" />
+        <span className="feedback-mark__label feedback-mark__label--correct">
+          正解！
+        </span>
       </div>
     );
   }
 
   if (type === FEEDBACK.WRONG) {
     return (
-      <div className="feedback-mark" aria-label="不正解">
-        <span className="feedback-mark__cross" />
+      <div className="feedback-mark__group" aria-label="不正解">
+        <span className="feedback-mark__cross" aria-hidden="true" />
+        <span className="feedback-mark__label feedback-mark__label--wrong">
+          不正解・・・
+        </span>
       </div>
     );
   }
@@ -173,7 +179,9 @@ export default function FortuneChecker({ fortune }) {
 
     const timer = window.setTimeout(() => {
       setFeedback(null);
-      setUnlockedByFeedback(true);
+      if (feedback === FEEDBACK.CORRECT) {
+        setUnlockedByFeedback(true);
+      }
     }, 1000);
 
     return () => window.clearTimeout(timer);
@@ -254,83 +262,97 @@ export default function FortuneChecker({ fortune }) {
     : clearShareText;
 
   return (
-    <div className="fortune-page">
+    <div
+      className={`fortune-page${feedback ? " fortune-page--feedback" : ""}`}
+    >
       <div className="fortune-page__content">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/img/logo.svg"
-          alt="100円なぞみくじ"
-          className="fortune-logo"
-        />
-
-        <form
-          className={`answer-form${stage === STAGE.ALL_CLEAR ? " answer-form--disabled" : ""}`}
-          onSubmit={onSubmit}
-        >
-          <label htmlFor="answer-input" className="answer-label">
-            問題の答えを入力しよう！
-          </label>
-          <input
-            id="answer-input"
-            className="answer-input"
-            type="text"
-            value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            disabled={stage === STAGE.ALL_CLEAR}
+        <div className="fortune-judge-area">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/img/logo.svg"
+            alt="100円なぞみくじ"
+            className="fortune-logo"
           />
-          <button
-            className="judge-button"
-            type="submit"
-            disabled={stage === STAGE.ALL_CLEAR}
+
+          <form
+            className={`answer-form${stage === STAGE.ALL_CLEAR ? " answer-form--disabled" : ""}`}
+            onSubmit={onSubmit}
           >
-            判定する
-          </button>
-        </form>
-
-        {showRewards && (
-          <>
-            <div className="fortune-image-wrap">
-              <Image
-                src={
-                  showDaikichiFortune
-                    ? "/img/fortune_daikichi.png"
-                    : fortune.fortuneImage
-                }
-                alt={
-                  showDaikichiFortune ? "大吉" : `${fortune.label}のクリア画像`
-                }
-                width={1000}
-                height={560}
-                className="fortune-image"
-                sizes="(max-width: 440px) 100vw, 440px"
-              />
-            </div>
-            {!showDaikichiFortune && (
-              <p className="fortune-hint">
-                メモ：あなたの運勢がもっと良くなる方法があるかも・・・？
-              </p>
-            )}
-            <a
-              href={getShareUrl(shareText)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Xでシェア"
-              className="image-button-link"
+            <label htmlFor="answer-input" className="answer-label">
+              問題の答えを入力しよう！
+            </label>
+            <input
+              id="answer-input"
+              className="answer-input"
+              type="text"
+              value={answer}
+              onChange={(event) => setAnswer(event.target.value)}
+              disabled={stage === STAGE.ALL_CLEAR}
+            />
+            <button
+              className="judge-button"
+              type="submit"
+              disabled={stage === STAGE.ALL_CLEAR}
             >
-              <Image
-                src="/img/button_1.png"
-                alt="Xでシェア"
-                width={1000}
-                height={240}
-                className="button-image"
-              />
-            </a>
-            <LinkButtons />
-          </>
-        )}
+              判定する
+            </button>
+          </form>
+        </div>
 
-        <FeedbackMark type={feedback} />
+        <div className="fortune-rewards-area">
+          {showRewards && (
+            <>
+              <div className="fortune-image-wrap">
+                <Image
+                  src={
+                    showDaikichiFortune
+                      ? "/img/fortune_daikichi.png"
+                      : fortune.fortuneImage
+                  }
+                  alt={
+                    showDaikichiFortune
+                      ? "大吉"
+                      : `${fortune.label}のクリア画像`
+                  }
+                  width={1000}
+                  height={560}
+                  className="fortune-image"
+                  sizes="(max-width: 440px) 100vw, 440px"
+                />
+              </div>
+              {!showDaikichiFortune && (
+                <p className="fortune-hint">
+                  メモ：あなたの運勢がもっと良くなる方法があるかも・・・？
+                </p>
+              )}
+              <a
+                href={getShareUrl(shareText)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Xでシェア"
+                className="image-button-link"
+              >
+                <Image
+                  src="/img/button_1.png"
+                  alt="Xでシェア"
+                  width={1000}
+                  height={240}
+                  className="button-image"
+                />
+              </a>
+              <LinkButtons />
+            </>
+          )}
+        </div>
+
       </div>
+
+      {feedback && <div className="feedback-backdrop" aria-hidden="true" />}
+      {feedback && (
+        <div className="feedback-mark-anchor">
+          <FeedbackMark type={feedback} />
+        </div>
+      )}
     </div>
   );
 }

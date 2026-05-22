@@ -11,6 +11,8 @@ const nextConfig = {
   images: {
     dangerouslyAllowSVG: true,
   },
+  // LAN の IP で dev サーバーにアクセスするときに必要（フォント・HMR）
+  allowedDevOrigins: ["10.128.153.131", "169.254.11.6"],
 };
 
 export default nextConfig;

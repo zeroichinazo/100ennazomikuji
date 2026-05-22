@@ -77,33 +77,6 @@ body {
   box-sizing: border-box;
 }
 
-.fortune-page--feedback {
-  display: grid;
-  grid-template-columns: min(100%, 440px);
-  justify-content: center;
-  align-content: start;
-  gap: 12px;
-}
-
-.fortune-page--feedback .fortune-page__content {
-  display: contents;
-}
-
-.fortune-page--feedback .fortune-judge-area {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.fortune-page--feedback .fortune-rewards-area {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.fortune-page--feedback .feedback-mark-anchor {
-  grid-column: 1;
-  grid-row: 1;
-}
-
 .home-page {
   min-height: 100vh;
   padding: 24px 12px 40px;
@@ -138,7 +111,7 @@ body {
   width: 100%;
   max-width: 240px;
   height: auto;
-  margin: 0 auto 8px;
+  margin: 0 auto 40px;
 }
 
 .fortune-hint {
@@ -181,6 +154,11 @@ body {
   min-width: 0;
 }
 
+.fortune-judge-area--feedback {
+  position: relative;
+  z-index: 2;
+}
+
 .fortune-rewards-area {
   width: 100%;
   min-width: 0;
@@ -196,12 +174,12 @@ body {
 }
 
 .feedback-mark-anchor {
-  position: relative;
-  z-index: 2;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
   pointer-events: none;
 }
 
@@ -269,7 +247,7 @@ body {
 }
 
 .answer-form {
-  margin-top: 8px;
+  margin-top: 16px;
   display: grid;
   gap: 10px;
   width: 100%;

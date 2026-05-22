@@ -56,7 +56,7 @@ export function getClearShareText(label) {
 
   return `${SHARE_HEADER}
 
-私の運勢は、【${label}】でした！
+私の運勢は【${label}】でした！
 
 #ゼロイチナゾミクジ
 
@@ -67,7 +67,7 @@ ${detailUrl}`;
 export function getAllClearShareText() {
   return `${SHARE_HEADER}
 
-私の運勢は、【大吉】になりました！
+私の運勢は【大吉】になりました！
 
 #ゼロイチナゾミクジ
 

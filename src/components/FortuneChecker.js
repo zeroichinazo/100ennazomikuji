@@ -106,21 +106,6 @@ function LinkButtons() {
   return (
     <>
       <a
-        href="https://www.zeroichinazo.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="ゼロイチHPへ"
-        className="image-button-link"
-      >
-        <Image
-          src="/img/button_2.png"
-          alt="ゼロイチHPへ"
-          width={1000}
-          height={240}
-          className="button-image"
-        />
-      </a>
-      <a
         href="https://x.com/0001_nazo"
         target="_blank"
         rel="noopener noreferrer"
@@ -128,8 +113,23 @@ function LinkButtons() {
         className="image-button-link"
       >
         <Image
-          src="/img/button_3.png"
+          src="/img/button_2.png"
           alt="ゼロイチXへ"
+          width={1000}
+          height={240}
+          className="button-image"
+        />
+      </a>
+      <a
+        href="https://www.zeroichinazo.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="ゼロイチHPへ"
+        className="image-button-link"
+      >
+        <Image
+          src="/img/button_3.png"
+          alt="ゼロイチHPへ"
           width={1000}
           height={240}
           className="button-image"
@@ -257,16 +257,14 @@ export default function FortuneChecker({ fortune }) {
     stage === STAGE.ALL_CLEAR &&
     !feedback &&
     (wasAllClearAtMount || unlockedByFeedback);
-  const shareText = showDaikichiFortune
-    ? allClearShareText
-    : clearShareText;
+  const shareText = showDaikichiFortune ? allClearShareText : clearShareText;
 
   return (
-    <div
-      className={`fortune-page${feedback ? " fortune-page--feedback" : ""}`}
-    >
+    <div className="fortune-page">
       <div className="fortune-page__content">
-        <div className="fortune-judge-area">
+        <div
+          className={`fortune-judge-area${feedback ? " fortune-judge-area--feedback" : ""}`}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/img/logo.svg"
@@ -297,6 +295,12 @@ export default function FortuneChecker({ fortune }) {
               判定する
             </button>
           </form>
+
+          {feedback && (
+            <div className="feedback-mark-anchor">
+              <FeedbackMark type={feedback} />
+            </div>
+          )}
         </div>
 
         <div className="fortune-rewards-area">
@@ -322,7 +326,7 @@ export default function FortuneChecker({ fortune }) {
               </div>
               {!showDaikichiFortune && (
                 <p className="fortune-hint">
-                  メモ：あなたの運勢がもっと良くなる方法があるかも・・・？
+                  メモ：あなたの運勢をさらに上げる方法があるかも…？
                 </p>
               )}
               <a
@@ -344,7 +348,6 @@ export default function FortuneChecker({ fortune }) {
             </>
           )}
         </div>
-
       </div>
 
       {feedback && <div className="feedback-backdrop" aria-hidden="true" />}

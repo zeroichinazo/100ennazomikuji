@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "100円なぞみくじ 正誤判定",
+  title: "100円なぞみくじ",
   description: "100円なぞみくじの答えを判定するWebサイト",
   icons: {
     icon: "/img/favicon.svg",

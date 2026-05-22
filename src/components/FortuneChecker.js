@@ -351,11 +351,6 @@ export default function FortuneChecker({ fortune }) {
       </div>
 
       {feedback && <div className="feedback-backdrop" aria-hidden="true" />}
-      {feedback && (
-        <div className="feedback-mark-anchor">
-          <FeedbackMark type={feedback} />
-        </div>
-      )}
     </div>
   );
 }

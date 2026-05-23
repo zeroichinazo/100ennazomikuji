@@ -46,7 +46,7 @@ const SHARE_PATH_BY_LABEL = {
 const SHARE_BASE_URL = "https://contents.zeroichinazo.com/100ennazomikuji";
 
 const SHARE_HEADER = `◤￣￣￣￣￣￣￣￣￣￣￣￣
-      ⛩️謎解きグッズ⛩️
+       ⛩️謎解きグッズ⛩️
      『100円なぞみくじ』
  ＿＿＿＿＿＿＿＿＿＿＿＿◢`;
 
